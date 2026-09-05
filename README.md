@@ -27,7 +27,9 @@ PvpDuel.sln
 │  ├─ Localization/Loc    embedded locales (en-US/zh-CN), PVP_* keys only
 │  ├─ Config/PvpConfigStore  pvpduel_config.json beside the manifest
 │  ├─ Duel/DuelScope      scope gate (stub: IsDuelRoom=false)
-│  ├─ Encounters/PvpDuelEncounter, Events/DuelAncientEventModel   stubs
+│  ├─ Encounters/PvpDuelEncounter    duel encounter (boss-room swap product)
+│  ├─ Ancients/                      T12: DuelAncientEventModel picker room, flow driver,
+│  │                                 AncientPickMessage handler, ChooseOptionForEvent mutex
 │  └─ Net/DuelMessages    DuelBranch/DuelTimer/DuelOutcome/AncientPick (wire format ready;
 │                         v0.111.0 auto-registers mod INetMessage subtypes — no Harmony needed)
 ├─ tests/PvpDuel.Core.Tests/  xUnit suite (45 tests)
@@ -76,10 +78,8 @@ separate JSON blob keyed by run identity (`"schema": 1`). A failed/corrupt read
 only drops mod-side data with a Warn — the official `SerializableRun` is never
 touched.
 
-## Known limitations (skeleton)
-
-- All game-facing stubs (`DuelScope`, `PvpDuelEncounter`, `DuelContext`,
-  `DuelAncientEventModel`, message send/handlers) throw
-  `NotImplementedException` / return placeholders — filled by T3+.
+- Remaining skeleton stubs (`DuelScope` gating surface, message handlers not
+  yet wired by their tickets) are filled by T3+; the Ancient flow (T12) and
+  the settlement layer (T11) are live.
 - PCK packing requires the Godot 4.5.1 CLI (`setup_godot_cli.ps1`); the
   skeleton runs DLL-only with locales embedded in the DLL.

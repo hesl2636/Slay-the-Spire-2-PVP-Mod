@@ -466,13 +466,21 @@ internal static class DuelOutcomeSync
         ClearPendingLocked();
     }
 
-    /// <summary>True only inside a live 2-player net run (the consensus population).</summary>
+    /// <summary>
+    /// True only inside a live 2-player net run whose remote end is still
+    /// connected (the consensus population). The peer-connected requirement
+    /// (ticket #25, spec §8) keeps the DisconnectTimeout forfeit and any
+    /// outcome observed after the peer dropped from applying divergence
+    /// semantics to a remote report that can never arrive: such reports
+    /// settle immediately instead.
+    /// </summary>
     private static bool SessionAlive()
     {
         var manager = RunManager.Instance;
         return manager != null
             && manager.NetService?.Type.IsMultiplayer() == true
-            && manager.DebugOnlyGetState() != null;
+            && manager.DebugOnlyGetState() != null
+            && manager.RunLobby?.Players.Count >= 2;
     }
 
     /// <summary>Live consensus snapshot for the debug console (acceptance tooling).</summary>

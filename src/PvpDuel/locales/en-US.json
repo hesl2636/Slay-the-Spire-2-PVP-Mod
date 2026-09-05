@@ -7,5 +7,12 @@
   "PVP_ANCIENT_PICK_TAKEN": "That Ancient was already claimed by your opponent.",
   "PVP_DUEL_CONFIG_MISMATCH": "PvP Duel: config mismatch with your opponent (local {0} / remote {1}) — duel refused. Both ends must share the same pvpduel_config.json.",
   "PVP_DUEL_LOSS_FALLBACK": "PvP Duel: duel-loss safety net triggered — outcome recorded, local player restored to 1 HP. See the log for details.",
-  "PVP_DUEL_FIRSTHAND": "Act first hand: {0}"
+  "PVP_DUEL_FIRSTHAND": "Act first hand: {0}",
+  "PVP_DUEL_RECONNECT": "Opponent connection lost — duel paused, waiting for reconnect ({0}s)…",
+  "DUEL_ANCIENT_EVENT_MODEL.title": "Ancient Decision",
+  "DUEL_ANCIENT_EVENT_MODEL.pages.INITIAL.description": "The duel winner claims an Ancient body first; the loser picks second and cannot repeat. Blessings are then drawn from your chosen Ancient.",
+  "DUEL_ANCIENT_EVENT_MODEL.pages.WAITING.description": "Your opponent is claiming their Ancient body first…",
+  "DUEL_ANCIENT_EVENT_MODEL.pages.DONE.description": "The Ancient's blessing is granted. Proceed when ready.",
+  "DUEL_ANCIENT_EVENT_MODEL.pages.INITIAL.options.PICK.title": "Pick your Ancient",
+  "DUEL_ANCIENT_EVENT_MODEL.talk.ANY.0-0.ancient": "The Ancients watch your duel. Choose your patron — the body you claim shapes the blessing you receive."
 }

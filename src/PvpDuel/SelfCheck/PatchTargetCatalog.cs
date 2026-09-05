@@ -143,6 +143,17 @@ public static class PatchTargetCatalog
             new(PatchSetIds.LossIntercept, "MegaCrit.Sts2.Core.Combat.CombatManager", "LoseCombat"),
         ]);
 
+        // Ticket #24 (T12): the Ancient body-pick mutex (spec §7 #6) — the
+        // EventSynchronizer.ChooseOptionForEvent private executor is the
+        // single funnel for both local picks and mirrored remote picks
+        // (EventSynchronizer.cs:272-287); the prefix validates the picker's
+        // body option against the settled-act mutex policy.
+        manifest.Add(new(
+            PatchSetIds.AncientMutex,
+            "MegaCrit.Sts2.Core.Multiplayer.Game.EventSynchronizer",
+            "ChooseOptionForEvent",
+            ["Player", "Int32"]));
+
         return manifest;
     }
 
@@ -156,5 +167,6 @@ public static class PatchTargetCatalog
         public const string SaveSideChannel = "SaveSideChannel";
         public const string LossIntercept = "LossIntercept";
         public const string TurnDrive = "TurnDrive";
+        public const string AncientMutex = "AncientMutex";
     }
 }

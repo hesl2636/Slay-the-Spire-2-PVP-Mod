@@ -33,6 +33,9 @@ public sealed class LocalizationCatalog
         _tables[language] = parsed;
     }
 
+    /// <summary>The raw table for a language (null when absent) — lets the mod mirror selected keys into the game's loc tables.</summary>
+    public IReadOnlyDictionary<string, string>? GetTable(string language) =>
+        _tables.TryGetValue(language, out var table) ? table : null;
     public bool HasLanguage(string language) => _tables.ContainsKey(language);
 
     /// <summary>

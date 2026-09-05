@@ -140,6 +140,29 @@ public static class ModEntry
         // Event wiring only (no Harmony). No existing lines changed.
         Outcomes.DuelOutcomeSync.Install();
 
+        // Ticket #24 (T12): winner-first Ancient body flow (spec §7 结算层).
+        // Consumes the act 1/2 settlements (DuelOutcomeDispatcher.ActOutcomeSettled)
+        // and opens the programmatically built DuelAncientEventModel room on
+        // both ends once the duel combat room closes; the loser's body options
+        // are mirror-locked via AncientPickMessage and the
+        // EventSynchronizer.ChooseOptionForEvent prefix enforces the mutex at
+        // the execution layer (manual application, same gate pattern as the
+        // sets above). Act 3 settles straight into the terminal hook — no
+        // Ancient flow. No existing lines changed.
+        Ancients.DuelAncientFlow.Install();
+        ApplyPatchSetIfEnabled(PatchTargetCatalog.PatchSetIds.AncientMutex, Ancients.AncientMutexPatch.Apply);
+
+        // Ticket #25 (T13): duel disconnect pause + reconnect-timeout forfeit
+        // (spec §2.1(7)/§8). Zero Harmony: the host-side wait hangs off the
+        // official RunLobby.RemotePlayerDisconnected/PlayerRejoined events and
+        // shows the PVP_DUEL_RECONNECT countdown (config DisconnectTimeoutSec,
+        // host clock); expiry routes DuelResult(DisconnectTimeout) through the
+        // #23 settlement pipeline; rejoin resumes the duel officially and
+        // backfills the mod state over the wire. Map-traversal disconnects
+        // stay on the official path untouched (regression red line). No
+        // existing lines changed.
+        Disconnect.DisconnectWatch.Install();
+
         new Harmony($"hesl2636.{Id}").PatchAll(typeof(ModEntry).Assembly);
         PvpDuelLog.Info("initialized.");
     }
