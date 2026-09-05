@@ -1,0 +1,48 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>pvpduel</AssemblyName>
+    <RootNamespace>PvpDuel</RootNamespace>
+    <Version>0.1.0</Version>
+    <Description>Slay the Spire 2 two-player PvP duel mod (game-facing assembly).</Description>
+    <!-- Keep game-owned assemblies out of the staged mod directory. -->
+    <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+
+  <Target Name="ValidateGameReferences" BeforeTargets="ResolveReferences">
+    <Error Condition="'$(Sts2DataDir)' == '' or !Exists('$(Sts2DataDir)\sts2.dll')"
+           Text="GameDir/Sts2DataDir not set or sts2.dll missing. Point -p:GameDir at the Slay the Spire 2 install." />
+  </Target>
+
+  <ItemGroup>
+    <Reference Include="sts2">
+      <HintPath>$(Sts2DataDir)\sts2.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="0Harmony">
+      <HintPath>$(Sts2DataDir)\0Harmony.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="GodotSharp">
+      <HintPath>$(Sts2DataDir)\GodotSharp.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <!--
+      The game's loader scans pvpduel.dll via GetTypes() before any mod code runs,
+      and its default AssemblyLoadContext does not probe the mod directory — a
+      separate PvpDuel.Core.dll could not be resolved at scan time. The Core
+      sources are therefore compiled INTO the mod assembly; the standalone Core
+      project exists for unit tests (same sources, single source of truth).
+    -->
+    <Compile Include="..\PvpDuel.Core\**\*.cs" LinkBase="Core" />
+    <Compile Remove="..\PvpDuel.Core\obj\**\*.cs" />
+    <Compile Remove="..\PvpDuel.Core\bin\**\*.cs" />
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <!-- Locale files ship inside the DLL (skeleton is DLL-only; a PCK can be added later). -->
+    <EmbeddedResource Include="locales\*.json" />
+  </ItemGroup>
+
+</Project>

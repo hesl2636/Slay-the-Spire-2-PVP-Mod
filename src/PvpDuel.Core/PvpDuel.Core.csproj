@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Pure, game-independent logic for the Slay the Spire 2 PvP Duel mod (fully unit-testable).</Description>
+  </PropertyGroup>
+
+</Project>

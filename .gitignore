@@ -1,0 +1,22 @@
+# Decompiled reference (read-only, not part of the mod)
+decomp/
+types.txt
+
+# Local scratch / tooling
+.scratch/
+.tools/
+.env
+
+# .NET build output
+bin/
+obj/
+artifacts/
+build/
+
+# Godot transient import cache
+.godot/
+
+# IDE
+.idea/
+.vs/
+*.user
