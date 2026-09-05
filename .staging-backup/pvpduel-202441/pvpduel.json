@@ -1,0 +1,14 @@
+﻿{
+    "id":  "pvpduel",
+    "name":  "PvP Duel",
+    "author":  "hesl2636",
+    "description":  "Two-player PvP duel runs for Slay the Spire 2 co-op: symmetric split-path acts, boss-room deck duels, Ancient first-picks, and per-turn play caps.",
+    "version":  "0.1.0",
+    "has_pck":  false,
+    "has_dll":  true,
+    "dependencies":  [
+
+                     ],
+    "affects_gameplay":  true,
+    "min_game_version":  "0.111.0"
+}

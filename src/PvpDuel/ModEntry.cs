@@ -100,6 +100,30 @@ public static class ModEntry
         Branching.BranchSync.Install();
         ApplyPatchSetIfEnabled(Branching.BranchingPatchSet.PatchSetId, Branching.BranchingPatchSet.Apply);
 
+        // Ticket #21 (T9): mod save side channel — write DuelSavePayload beside
+        // the official run save on SaveRun (host/singleplayer, non-empty state
+        // only), probe the multiplayer save early, and restore the mod state
+        // when a saved run materializes / a new run resets it. Manual
+        // application, same gate pattern as the sets above. No existing lines changed.
+        ApplyPatchSetIfEnabled(PatchTargetCatalog.PatchSetIds.SaveSideChannel, Save.DuelSavePatchSet.Apply);
+
+        // Ticket #19 (T7): duel-loss interception + local duel-outcome event
+        // source. Room-window tracker lifecycle (no Harmony) — settled results
+        // land in Save.DuelSaveState.History (persisted by the #21 side
+        // channel) — then the Kill/LoseCombat patch set, applied manually after
+        // the self-check (same gate pattern as the sets above). No existing
+        // lines changed.
+        Combat.LossInterceptPatch.Install();
+        ApplyPatchSetIfEnabled(PatchTargetCatalog.PatchSetIds.LossIntercept, Combat.LossInterceptPatch.Apply);
+
+        // Ticket #18 (T6): the opponent-turn driver (spec §7 #3) — the
+        // ExecuteEnemyTurn replacement plus the vanilla fan-out gates that
+        // keep the player-side turn flow local-player-only while the flipped
+        // duel opponent is driven on the Enemy side (§12.3 verdict archived
+        // on the patch class). Manual application, same gate pattern as the
+        // sets above. No existing lines changed.
+        ApplyPatchSetIfEnabled(PatchTargetCatalog.PatchSetIds.TurnDrive, Combat.OpponentTurnDrivePatch.Apply);
+
         new Harmony($"hesl2636.{Id}").PatchAll(typeof(ModEntry).Assembly);
         PvpDuelLog.Info("initialized.");
     }

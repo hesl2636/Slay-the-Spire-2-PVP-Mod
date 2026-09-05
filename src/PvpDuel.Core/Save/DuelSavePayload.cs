@@ -59,13 +59,16 @@ public sealed record BranchStateDto(
 /// <summary>
 /// Root payload of the mod save side-channel. Stored as a separate JSON blob
 /// keyed by run identity; the official <c>SerializableRun</c> is never touched.
+/// <paramref name="ConfigHash"/> snapshots the mod config hash at save time
+/// (spec §4.4 diagnostics; null when unknown).
 /// </summary>
 public sealed record DuelSavePayload(
     [property: JsonPropertyName("schema")] int Schema,
     [property: JsonPropertyName("runKey")] string RunKey,
     [property: JsonPropertyName("branches")] IReadOnlyList<SavedBranchEntry> Branches,
     [property: JsonPropertyName("duelResults")] IReadOnlyList<DuelResultDto> DuelResults,
-    [property: JsonPropertyName("ancientPicks")] IReadOnlyList<AncientPickDto> AncientPicks)
+    [property: JsonPropertyName("ancientPicks")] IReadOnlyList<AncientPickDto> AncientPicks,
+    [property: JsonPropertyName("configHash")] string? ConfigHash = null)
 {
     public static DuelSavePayload Empty(string runKey) =>
         new(SaveSchema.CurrentVersion, runKey, [], [], []);
@@ -75,11 +78,12 @@ public sealed record DuelSavePayload(
         other is not null
         && Schema == other.Schema
         && RunKey == other.RunKey
+        && ConfigHash == other.ConfigHash
         && Branches.SequenceEqual(other.Branches)
         && DuelResults.SequenceEqual(other.DuelResults)
         && AncientPicks.SequenceEqual(other.AncientPicks);
 
-    public override int GetHashCode() => HashCode.Combine(Schema, RunKey);
+    public override int GetHashCode() => HashCode.Combine(Schema, RunKey, ConfigHash);
 
 }
 

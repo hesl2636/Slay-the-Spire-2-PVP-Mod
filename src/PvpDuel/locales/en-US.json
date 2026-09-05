@@ -6,4 +6,5 @@
   "PVP_DUEL_OUTCOME_DIVERGENCE": "Duel outcome divergence — both ends reported different results. Session aborted.",
   "PVP_ANCIENT_PICK_TAKEN": "That Ancient was already claimed by your opponent.",
   "PVP_DUEL_CONFIG_MISMATCH": "PvP Duel: config mismatch with your opponent (local {0} / remote {1}) — duel refused. Both ends must share the same pvpduel_config.json.",
+  "PVP_DUEL_LOSS_FALLBACK": "PvP Duel: duel-loss safety net triggered — outcome recorded, local player restored to 1 HP. See the log for details."
 }
