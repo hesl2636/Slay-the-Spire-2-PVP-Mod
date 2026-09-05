@@ -44,8 +44,7 @@ public class RoomSetBossPatchTargetTests
     public void Catalog_DeclaresDuelEntryTarget()
     {
         var manifest = PatchTargetCatalog.Build();
-        var spec = Assert.Single(manifest.Targets);
-        Assert.Equal("DuelEntry", spec.PatchSetId);
+        var spec = Assert.Single(manifest.Targets, t => t.PatchSetId == "DuelEntry");
         Assert.Equal("MegaCrit.Sts2.Core.Rooms.RoomSet", spec.TypeName);
         Assert.Equal("Boss", spec.MemberName);
     }
@@ -53,7 +52,9 @@ public class RoomSetBossPatchTargetTests
     [Fact]
     public void Catalog_TargetPassesSelfCheckAgainstLoadedGameAssembly()
     {
-        var result = PatchSelfCheck.Run(PatchTargetCatalog.Build(), new PropertyProbe());
+        // AccessToolsProbe resolves methods (incl. private) + properties/fields,
+        // matching what the game-side self-check actually runs.
+        var result = PatchSelfCheck.Run(PatchTargetCatalog.Build(), AccessToolsProbe.Instance);
         Assert.True(result.AllTargetsExist, string.Join("\n", result.Warnings()));
         Assert.True(result.IsPatchSetEnabled("DuelEntry"));
     }

@@ -1,3 +1,4 @@
+using PvpDuel.Core.Branching;
 using PvpDuel.Core.Duel;
 using Xunit;
 
@@ -74,5 +75,89 @@ public class BranchTableTests
     public void Reset_NegativeAct_Throws()
     {
         Assert.Throws<ArgumentOutOfRangeException>(() => new BranchTable().Reset(-1));
+    }
+
+    // ---- Ticket #20: divergence semantics (checksum exclusion / room scoping) ----
+
+    [Fact]
+    public void Diverged_TwoPlayersAtDifferentCoords_IsTrue()
+    {
+        var table = new BranchTable();
+        table.Reset(0);
+        table.Set(1, State(col: 1, row: 1));
+        Assert.False(table.Diverged);
+        table.Set(2, State(col: 5, row: 2));
+        Assert.True(table.Diverged);
+    }
+
+    [Fact]
+    public void Diverged_SinglePlayerOrSameCoords_IsFalse()
+    {
+        var table = new BranchTable();
+        table.Reset(0);
+        Assert.False(table.Diverged);
+        table.Set(1, State(col: 3, row: 3));
+        Assert.False(table.Diverged);
+        table.Set(2, State(col: 3, row: 3));
+        Assert.False(table.Diverged);
+    }
+
+    [Fact]
+    public void Diverged_ReconvergenceAtBoss_ClearsIt()
+    {
+        var table = new BranchTable();
+        table.Reset(2);
+        table.Set(1, State(act: 2, col: 0, row: 1));
+        table.Set(2, State(act: 2, col: 6, row: 1));
+        Assert.True(table.Diverged);
+
+        var boss = new MapCoord(3, 9);
+        table.Set(1, new BranchState(2, boss, InBossWait: true));
+        table.Set(2, new BranchState(2, boss, InBossWait: true));
+        Assert.False(table.Diverged);
+        Assert.True(BranchTable.IsBossRendezvous(table.Get(1), table.Get(2)));
+    }
+
+    [Fact]
+    public void SameBranch_RequiresBothKnownAndEqualCoord()
+    {
+        var table = new BranchTable();
+        table.Reset(0);
+        table.Set(1, State(col: 2, row: 2));
+        Assert.False(table.SameBranch(1, 2));
+        table.Set(2, State(col: 2, row: 2));
+        Assert.True(table.SameBranch(1, 2));
+        table.Set(2, State(col: 4, row: 2));
+        Assert.False(table.SameBranch(1, 2));
+    }
+
+    [Fact]
+    public void Diverged_DifferentActs_StillCountsByCoord()
+    {
+        var table = new BranchTable();
+        table.Reset(1);
+        table.Set(1, State(act: 1, col: 1, row: 1));
+        table.Set(2, State(act: 1, col: 5, row: 1));
+        Assert.True(table.Diverged);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void BranchExclusion_MatchesCoordDifference(bool sameCoord)
+    {
+        var a = State(col: 1, row: 1);
+        var b = sameCoord ? State(col: 1, row: 1) : State(col: 5, row: 2);
+        Assert.Equal(!sameCoord, BranchExclusion.Diverged(a, b));
+        Assert.False(BranchExclusion.Diverged(a, null));
+        Assert.False(BranchExclusion.Diverged(null, b));
+    }
+    [Fact]
+    public void BranchScaling_DivergedFightCountsOneParticipant_ConvergedCountsRoster()
+    {
+        // Spec §12.2: branch combat enemy values scale by branch participants.
+        Assert.Equal(1, BranchExclusion.CombatParticipantCount(diverged: true, runPlayerCount: 2));
+        Assert.Equal(2, BranchExclusion.CombatParticipantCount(diverged: false, runPlayerCount: 2));
+        Assert.Equal(1, BranchExclusion.CombatParticipantCount(diverged: false, runPlayerCount: 1));
     }
 }

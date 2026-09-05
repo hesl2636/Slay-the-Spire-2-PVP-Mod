@@ -31,6 +31,44 @@ public sealed class BranchTable
     public static bool IsBossRendezvous(BranchState? a, BranchState? b) =>
         a is { InBossWait: true } && b is { InBossWait: true } && a.ActIndex == b.ActIndex;
 
+    /// <summary>
+    /// True when at least two players are recorded at different map coordinates —
+    /// the session is split across branch paths. Drives checksum exclusion and
+    /// branch-scoped room views on both ends (each derives it from the mirrored,
+    /// host-authoritative table, so the answers always agree).
+    /// </summary>
+    public bool Diverged
+    {
+        get
+        {
+            if (_states.Count < 2)
+            {
+                return false;
+            }
+
+            MapCoord? first = null;
+            foreach (var state in _states.Values)
+            {
+                if (first is null)
+                {
+                    first = state.Coord;
+                }
+                else if (state.Coord != first)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+    }
+
+    /// <summary>Whether both players are known and share the same map coordinate (same branch or reconverged).</summary>
+    public bool SameBranch(ulong a, ulong b) =>
+        _states.TryGetValue(a, out var stateA)
+        && _states.TryGetValue(b, out var stateB)
+        && stateA.Coord == stateB.Coord;
+
     public BranchState Get(ulong playerNetId)
     {
         if (_states.TryGetValue(playerNetId, out var state))

@@ -63,9 +63,42 @@ public static class ModEntry
             PvpDuelLog.Error($"{Encounters.RoomSetBossPatch.PatchSetId} patch set disabled by self-check.");
         }
 
+        // Ticket #17 (T5): side flip + Monster-deref guards (spec §7 #2), and
+        // the single-machine fake-opponent harness (spec §9, debug flag +
+        // console command). Both applied manually after the self-check, same
+        // pattern as the DuelEntry set above. No existing lines changed.
+        ApplyPatchSetIfEnabled(Combat.CreatureSideFlipPatch.PatchSetId, Combat.CreatureSideFlipPatch.Apply);
+        ApplyPatchSetIfEnabled(Combat.DuelHarnessPatch.PatchSetId, Combat.DuelHarnessPatch.Apply);
+
+        static void ApplyPatchSetIfEnabled(string patchSetId, Action<Harmony> apply)
+        {
+            if (SelfCheckState.IsPatchSetEnabled(patchSetId))
+            {
+                try
+                {
+                    apply(new Harmony($"hesl2636.{Id}.{patchSetId.ToLowerInvariant()}"));
+                }
+                catch (Exception ex)
+                {
+                    PvpDuelLog.Error($"{patchSetId} patch set disabled: {ex.Message}");
+                }
+            }
+            else
+            {
+                PvpDuelLog.Error($"{patchSetId} patch set disabled by self-check.");
+            }
+        }
+
         // Ticket #15: attach the duel room window (context lifecycle + config
         // consistency entry hook) to the official room events.
         Duel.DuelScope.Install();
+
+        // Ticket #20: branch layer — install the DuelBranchMessage /
+        // DuelTimerMessage handlers, then apply the split-path patch set only
+        // when its self-check passed (manual application, same gate pattern
+        // as the DuelEntry set above).
+        Branching.BranchSync.Install();
+        ApplyPatchSetIfEnabled(Branching.BranchingPatchSet.PatchSetId, Branching.BranchingPatchSet.Apply);
 
         new Harmony($"hesl2636.{Id}").PatchAll(typeof(ModEntry).Assembly);
         PvpDuelLog.Info("initialized.");
