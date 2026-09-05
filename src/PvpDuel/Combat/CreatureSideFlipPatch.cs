@@ -94,15 +94,20 @@ internal static class CreatureSideFlipPatch
         }
     }
 
-    /// <summary>Task-returning prefix: CompletedTask skips the original (no NRE on Monster), null runs vanilla.</summary>
-
-    private static Task? AfterAddedToRoomPrefix(Creature __instance)
+    /// <summary>
+    /// Async original (decomp Creature.cs:415): the skip goes through
+    /// <c>ref Task __result</c> — 0Harmony 2.4.2 rejects bare Task?-returning
+    /// prefixes at Patch() time (ticket-#18 probe; pinned by
+    /// SideFlipGameSurfaceTests).
+    /// </summary>
+    private static bool AfterAddedToRoomPrefix(Creature __instance, ref Task __result)
     {
         if (!SideFlipPolicy.ShouldSkipAfterAddedToRoom(DuelScope.IsDuelRoom, __instance.IsPlayer, __instance.Side))
         {
-            return null;
+            return true; // vanilla
         }
-        return Task.CompletedTask;
+        __result = Task.CompletedTask; // caller awaits a completed task, never null
+        return false;
     }
 
     /// <summary>Void original: bool false skips the Monster.MoveStateMachine read.</summary>
@@ -111,23 +116,29 @@ internal static class CreatureSideFlipPatch
         return !SideFlipPolicy.ShouldSkipPrepareForNextTurn(DuelScope.IsDuelRoom, __instance.IsPlayer, __instance.Side);
     }
 
-    /// <summary>Vanilla TakeTurn throws for non-monster enemies; skip the flipped opponent's automated turn.</summary>
-    private static Task? TakeTurnPrefix(Creature __instance)
+    /// <summary>
+    /// Vanilla TakeTurn throws for non-monster enemies (decomp Creature.cs:716-721);
+    /// skip the flipped opponent's automated turn through <c>ref Task __result</c>
+    /// (same 0Harmony 2.4.2 contract as AfterAddedToRoomPrefix).
+    /// </summary>
+    private static bool TakeTurnPrefix(Creature __instance, ref Task __result)
     {
         if (!SideFlipPolicy.ShouldSkipTakeTurn(DuelScope.IsDuelRoom, __instance.IsPlayer, __instance.Side))
         {
-            return null;
+            return true; // vanilla
         }
-        return Task.CompletedTask;
+        __result = Task.CompletedTask;
+        return false;
     }
 
     /// <summary>Skips the creature.Monster.RollMove call for the flipped opponent; the AfterAddedToRoom line is a guarded no-op.</summary>
-    private static Task? AfterCreatureAddedPrefix(Creature creature, CombatState state)
+    private static bool AfterCreatureAddedPrefix(Creature creature, CombatState state, ref Task __result)
     {
         if (!SideFlipPolicy.ShouldSkipMonsterRollMove(DuelScope.IsDuelRoom, creature.IsPlayer, creature.Side))
         {
-            return null;
+            return true; // vanilla
         }
-        return Task.CompletedTask;
+        __result = Task.CompletedTask;
+        return false;
     }
 }
