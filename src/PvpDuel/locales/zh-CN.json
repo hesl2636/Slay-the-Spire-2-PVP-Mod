@@ -4,5 +4,6 @@
   "PVP_DUEL_FATIGUE_REJECTED": "已达到本回合出牌上限（{0} 张）。",
   "PVP_DUEL_DISCONNECT_TIMEOUT": "{0} 掉线——超时 {1} 秒，判负。",
   "PVP_DUEL_OUTCOME_DIVERGENCE": "对决结果分歧——双端报告不一致，会话已中止。",
-  "PVP_ANCIENT_PICK_TAKEN": "该先古之民已被对手选走。"
+  "PVP_ANCIENT_PICK_TAKEN": "该先古之民已被对手选走。",
+  "PVP_DUEL_CONFIG_MISMATCH": "PvP 对决：与对手配置不一致（本地 {0} / 对端 {1}）——对决已拒绝。双端必须使用相同的 pvpduel_config.json。"
 }

@@ -1,4 +1,5 @@
 using PvpDuel.Core.SelfCheck;
+using PvpDuel.Encounters;
 
 namespace PvpDuel.SelfCheck;
 
@@ -10,12 +11,20 @@ namespace PvpDuel.SelfCheck;
 /// </summary>
 public static class PatchTargetCatalog
 {
-    /// <summary>Builds the manifest. Empty until T3+ register their targets.</summary>
+    /// <summary>
+    /// Builds the manifest.
+    /// "DuelEntry" (ticket #15): the <see cref="MegaCrit.Sts2.Core.Rooms.RoomSet.Boss"/>
+    /// public setter — the duel entry patch (spec §7 #1). The prefix replacement
+    /// is applied manually (not via Harmony attributes) and only when this set
+    /// passes the startup self-check.
+    /// </summary>
     public static PatchManifest Build()
     {
         var manifest = new PatchManifest();
-        // T3+ append entries here, e.g.:
-        // manifest.Add(new PatchTargetSpec("DuelCombat", "MegaCrit.Sts2.Core.Combat.CombatManager", "ExecuteEnemyTurn"));
+        manifest.Add(new PatchTargetSpec(
+            RoomSetBossPatch.PatchSetId,
+            "MegaCrit.Sts2.Core.Rooms.RoomSet",
+            "Boss"));
         return manifest;
     }
 }

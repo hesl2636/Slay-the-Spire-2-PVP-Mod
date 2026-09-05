@@ -32,6 +32,41 @@ public static class ModEntry
         var (_, hash) = Config.PvpConfigStore.LoadOrDefault();
         PvpDuelLog.Info($"config hash: {hash}");
 
+        // Ticket #16: swap generated act maps for the symmetric split map via
+        // the official run-state hook subscription (zero Harmony).
+        Maps.DuelMapHook.Install();
+
+        // Ticket #15: the duel encounter is registered by ModelDb.Init's
+        // automatic mod-assembly scan (OneTimeInitialization.ExecuteEssential,
+        // which runs AFTER mod initializers). Do NOT call ModelDb.Inject here:
+        // the auto-scan instantiates the type again and the AbstractModel
+        // constructor throws DuplicateModelException on the already-injected id
+        // (verified in the v0.111.0 live smoke).
+
+        // Ticket #15: apply the duel entry patch (RoomSet.Boss setter prefix)
+        // only when its patch set passed the self-check; attribute-patching
+        // would bypass that gate, so this one is applied manually.
+        PvpDuelLog.Info($"duel encounter ENCOUNTER.PVP_DUEL_ENCOUNTER declared (auto-registered by the ModelDb.Init mod scan).");
+        if (SelfCheckState.IsPatchSetEnabled(Encounters.RoomSetBossPatch.PatchSetId))
+        {
+            try
+            {
+                Encounters.RoomSetBossPatch.Apply(new Harmony($"hesl2636.{Id}.duelentry"));
+            }
+            catch (Exception ex)
+            {
+                PvpDuelLog.Error($"{Encounters.RoomSetBossPatch.PatchSetId} patch set disabled: {ex.Message}");
+            }
+        }
+        else
+        {
+            PvpDuelLog.Error($"{Encounters.RoomSetBossPatch.PatchSetId} patch set disabled by self-check.");
+        }
+
+        // Ticket #15: attach the duel room window (context lifecycle + config
+        // consistency entry hook) to the official room events.
+        Duel.DuelScope.Install();
+
         new Harmony($"hesl2636.{Id}").PatchAll(typeof(ModEntry).Assembly);
         PvpDuelLog.Info("initialized.");
     }

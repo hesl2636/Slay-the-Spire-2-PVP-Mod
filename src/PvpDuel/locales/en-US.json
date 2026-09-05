@@ -4,5 +4,6 @@
   "PVP_DUEL_FATIGUE_REJECTED": "Turn play limit reached ({0} cards played).",
   "PVP_DUEL_DISCONNECT_TIMEOUT": "{0} disconnected — duel forfeit after {1}s.",
   "PVP_DUEL_OUTCOME_DIVERGENCE": "Duel outcome divergence — both ends reported different results. Session aborted.",
-  "PVP_ANCIENT_PICK_TAKEN": "That Ancient was already claimed by your opponent."
+  "PVP_ANCIENT_PICK_TAKEN": "That Ancient was already claimed by your opponent.",
+  "PVP_DUEL_CONFIG_MISMATCH": "PvP Duel: config mismatch with your opponent (local {0} / remote {1}) — duel refused. Both ends must share the same pvpduel_config.json.",
 }

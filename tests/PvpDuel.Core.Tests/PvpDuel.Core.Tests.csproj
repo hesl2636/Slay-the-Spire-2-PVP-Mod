@@ -11,7 +11,21 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\PvpDuel.Core\PvpDuel.Core.csproj" />
+    <!--
+      The mod assembly embeds the Core sources (single source of truth), so
+      referencing PvpDuel exposes both the pure-logic and game-facing types.
+      Referencing Core directly as well would make every Core type ambiguous.
+    -->
+    <ProjectReference Include="..\..\src\PvpDuel\PvpDuel.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(Sts2DataDir)' != ''">
+    <!-- Game types (ActMap/MapPoint) are constructible headless; private=true
+         copies the DLL next to the test host so type resolution works. -->
+    <Reference Include="sts2">
+      <HintPath>$(Sts2DataDir)\sts2.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
   </ItemGroup>
 
 </Project>
