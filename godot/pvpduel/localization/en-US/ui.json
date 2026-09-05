@@ -3,6 +3,6 @@
   "PVP_DUEL_SELF_CHECK_BANNER": "PvP Duel: patch sets disabled after startup self-check:\n{0}",
   "PVP_DUEL_FATIGUE_REJECTED": "Turn play limit reached ({0} cards played).",
   "PVP_DUEL_DISCONNECT_TIMEOUT": "{0} disconnected — duel forfeit after {1}s.",
-  "PVP_DUEL_OUTCOME_DIVERGENCE": "Duel outcome divergence — both ends reported different results. Session aborted.",
+  "PVP_ERROR_DIVERGENCE": "State divergence — the two ends disagree. Please capture the logs on both ends and report.",
   "PVP_ANCIENT_PICK_TAKEN": "That Ancient was already claimed by your opponent."
 }

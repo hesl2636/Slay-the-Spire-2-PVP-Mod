@@ -82,7 +82,15 @@ public static class DuelScope
             var state = RunManager.Instance.DebugOnlyGetState();
             if (state?.CurrentRoom is CombatRoom { Encounter: PvpDuelEncounter })
             {
-                _current = new DuelContext { ActIndex = state.CurrentActIndex };
+                var context = new DuelContext { ActIndex = state.CurrentActIndex };
+                // Ticket #22: seed a first-hand decision that already landed
+                // (rendezvous can complete before the room window opens).
+                if (Timing.ActTimer.DecidedFirstHandFor(state.CurrentActIndex) is { } firstHand)
+                {
+                    context.DeclareFirstHand(firstHand);
+                }
+
+                _current = context;
                 PvpDuelLog.Info($"duel room entered (act {state.CurrentActIndex + 1}); duel scope armed.");
                 DuelConfigGate.OnDuelEntering();
             }
@@ -126,8 +134,26 @@ public sealed class DuelContext
 {
     public int ActIndex { get; init; }
 
-    /// <summary>NetId of the player with first-hand (shorter act timer).</summary>
-    public ulong FirstHandNetId { get; init; }
+    /// <summary>
+    /// NetId of the player with first-hand (shorter act timer, ticket #22).
+    /// 0 = unset sentinel: the deterministic lower-NetId fallback applies
+    /// (OpponentTurnPolicy), so a missing timer decision degrades safely.
+    /// </summary>
+    public ulong FirstHandNetId { get; private set; }
+
+    /// <summary>
+    /// Timer-layer landing (ticket #22): the first-hand decision can arrive
+    /// after the duel room opened — boss-wait confirmations race the room
+    /// window — so the decision is declared onto the live context. The first
+    /// declaration wins; 0 is rejected (unset sentinel).
+    /// </summary>
+    public void DeclareFirstHand(ulong netId)
+    {
+        if (netId != 0 && FirstHandNetId == 0)
+        {
+            FirstHandNetId = netId;
+        }
+    }
 
     public FatigueRule Fatigue { get; init; } = new(FatigueRule.DefaultCap);
 

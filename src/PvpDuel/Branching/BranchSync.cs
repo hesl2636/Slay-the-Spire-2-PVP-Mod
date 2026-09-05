@@ -43,12 +43,18 @@ public static class BranchSync
     private static readonly BranchTable Table = new();
     private static INetGameService? _subscribedService;
 
-    private static int _timerActIndex = -1;
-    private static long _timerElapsedMs;
-    private static bool _installed;
+    /// <summary>
+    /// Raised after a changed branch state is stored AND (host side) its
+    /// authoritative broadcast went out. Consumed by the timer layer for
+    /// boss-wait confirmations (ticket #22); the raise-after-broadcast order
+    /// guarantees a following DuelTimerMessage lands after its confirmation.
+    /// </summary>
+    public static event Action<ulong, BranchState>? BranchStateChanged;
 
-    /// <summary>Latest host broadcast timer, for the ActTimer ticket (first-hand).</summary>
-    public static (int ActIndex, long ElapsedMs) LastReceivedTimer => (_timerActIndex, _timerElapsedMs);
+    /// <summary>Raised after the per-act table reset (SetActInternal postfix); act = the new act index.</summary>
+    public static event Action<int>? ActChanged;
+
+    private static bool _installed;
 
     /// <summary>
     /// Branch layer is live: an active 2-player co-op run on the symmetric split
@@ -316,8 +322,11 @@ public static class BranchSync
         }
     }
 
-
-    /// <summary>Act changed (SetActInternal postfix): reset the per-act table; the next act's votes re-assign branches.</summary>
+    /// <summary>
+    /// Act changed (SetActInternal postfix): reset the per-act table; the next
+    /// act's votes re-assign branches. Raises <see cref="ActChanged"/> for the
+    /// timer layer's t0 re-arm (ticket #22).
+    /// </summary>
     public static void OnActChanged(int actIndex)
     {
         if (!Active)
@@ -327,6 +336,7 @@ public static class BranchSync
 
         Table.Reset(actIndex);
         PvpDuelLog.Info($"branch table reset for act {actIndex + 1}.");
+        ActChanged?.Invoke(actIndex);
     }
 
     /// <summary>
@@ -370,7 +380,11 @@ public static class BranchSync
             if (!IsHost)
             {
                 // Client: apply host-authoritative state only (no self-authority).
-                Table.Set(message.PlayerNetId, incoming);
+                if (Table.Set(message.PlayerNetId, incoming))
+                {
+                    BranchStateChanged?.Invoke(message.PlayerNetId, incoming);
+                }
+
                 return;
             }
 
@@ -385,6 +399,7 @@ public static class BranchSync
             {
                 Broadcast(message.PlayerNetId, message.ActIndex, message.Col, message.Row, message.InBossWait);
                 PvpDuelLog.Info($"branch: host confirmed player {message.PlayerNetId} state (act {message.ActIndex + 1}, bossWait={message.InBossWait}).");
+                BranchStateChanged?.Invoke(message.PlayerNetId, incoming);
             }
         }
         catch (Exception ex)
@@ -397,10 +412,10 @@ public static class BranchSync
     {
         try
         {
-            // Skeleton (ticket #20): record the latest host clock; the ActTimer
-            // ticket consumes it for first-hand determination (spec §7 幕切换与计时).
-            _timerActIndex = message.ActIndex;
-            _timerElapsedMs = message.ElapsedMs;
+            // Ticket #22: the timer layer consumes the host-clock elapsed
+            // values for first-hand determination (spec §7). The host never
+            // consumes — it is the single clock source and ignores its echo.
+            Timing.ActTimer.OnTimerReceived(message.ActIndex, message.ElapsedMs);
             PvpDuelLog.Info($"branch: act timer received (act {message.ActIndex + 1}, {message.ElapsedMs} ms).");
         }
         catch (Exception ex)
@@ -411,12 +426,17 @@ public static class BranchSync
 
     // ---- Internals ----
 
-    /// <summary>Host-side publish: mutate the table, then broadcast (the only mutation path).</summary>
+    /// <summary>
+    /// Host-side publish: mutate the table, then broadcast (the only mutation
+    /// path). The state-changed event fires after the broadcast so a following
+    /// timer message keeps confirmation order (ticket #22).
+    /// </summary>
     private static void Publish(ulong playerNetId, BranchState state)
     {
         if (Table.Set(playerNetId, state))
         {
             Broadcast(playerNetId, state.ActIndex, state.Coord.Col, state.Coord.Row, state.InBossWait);
+            BranchStateChanged?.Invoke(playerNetId, state);
         }
     }
 

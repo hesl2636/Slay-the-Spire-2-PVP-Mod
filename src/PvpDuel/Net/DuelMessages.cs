@@ -94,7 +94,8 @@ public sealed class DuelTimerMessage : INetMessage
 /// <summary>
 /// Duel outcome report (both ends send their local view; results settle only
 /// when both sides agree — disagreement aborts the session per spec §8).
-/// STUB (ticket #13).
+/// Wire format from ticket #13; sender, handler and consensus settlement wired
+/// by ticket #23 (<c>Outcomes.DuelOutcomeSync</c>).
 /// </summary>
 public sealed class DuelOutcomeMessage : INetMessage
 {

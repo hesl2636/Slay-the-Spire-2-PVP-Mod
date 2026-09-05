@@ -124,6 +124,22 @@ public static class ModEntry
         // sets above. No existing lines changed.
         ApplyPatchSetIfEnabled(PatchTargetCatalog.PatchSetIds.TurnDrive, Combat.OpponentTurnDrivePatch.Apply);
 
+        // Ticket #22 (T10): act timer + first-hand determination (spec §7
+        // 计时层, zero Harmony). Subscribes the branch layer's act/boss-wait
+        // transitions, runs the host-clock DuelTimerMessage broadcast and
+        // lands DuelContext.FirstHand on both ends (shorter act time wins;
+        // <1s difference falls back to the run-seed-derived RNG). No existing
+        // lines changed.
+        Timing.ActTimer.Install();
+
+        // Ticket #23 (T11): mirrored duel-outcome settlement (spec §4.2/§8).
+        // Takes over the #19 settled sink: local outcomes are reported to the
+        // peer via DuelOutcomeMessage and settle only on both-end agreement —
+        // agreed results land in Save.DuelSaveState.History and dispatch the
+        // per-act events; disagreement/timeout aborts the session (divergence).
+        // Event wiring only (no Harmony). No existing lines changed.
+        Outcomes.DuelOutcomeSync.Install();
+
         new Harmony($"hesl2636.{Id}").PatchAll(typeof(ModEntry).Assembly);
         PvpDuelLog.Info("initialized.");
     }

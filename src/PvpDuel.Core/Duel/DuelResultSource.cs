@@ -69,15 +69,21 @@ public sealed class DuelOutcomeTracker
 /// Local duel-outcome event source (ticket #19, spec §6): death observations
 /// land on the combat-scoped tracker; resolved outcomes are raised on
 /// <see cref="OutcomeSettledLocally"/> and forwarded to <see cref="SettledSink"/>.
-/// Consumers: the mod layer binds the sink to the run-scoped history the save
-/// side-channel (#21) persists; the settlement ticket (T11) mirrors the record
-/// across ends. Pure Core state — no game types.
+/// Pure Core state — no game types.
+///
+/// Since the settlement ticket (#23) the sink carries the result into the
+/// both-end consensus (<c>Outcomes.DuelOutcomeSync</c>) instead of straight
+/// into the run-scoped history: history records only after the peer's
+/// <c>DuelOutcomeMessage</c> agrees (divergence semantics otherwise). Before
+/// that ticket installs, a direct-to-history binding preserves the local-only
+/// settlement.
 /// </summary>
 public static class DuelResultSource
 {
     /// <summary>
-    /// Run-scoped sink for settled results; the mod layer binds it to the
-    /// history holder (save side-channel). Null keeps results event-only.
+    /// Run-scoped sink for settled results; since #23 the mod layer binds it to
+    /// the both-end settlement pipeline (which records the history on
+    /// agreement). Null keeps results event-only.
     /// </summary>
     public static Action<DuelResult>? SettledSink { get; set; }
 

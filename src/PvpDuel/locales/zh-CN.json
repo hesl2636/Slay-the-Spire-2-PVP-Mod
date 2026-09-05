@@ -3,8 +3,9 @@
   "PVP_DUEL_SELF_CHECK_BANNER": "PvP 对决：启动期自检发现目标缺失，以下补丁集已被禁用：\n{0}",
   "PVP_DUEL_FATIGUE_REJECTED": "已达到本回合出牌上限（{0} 张）。",
   "PVP_DUEL_DISCONNECT_TIMEOUT": "{0} 掉线——超时 {1} 秒，判负。",
-  "PVP_DUEL_OUTCOME_DIVERGENCE": "对决结果分歧——双端报告不一致，会话已中止。",
+  "PVP_ERROR_DIVERGENCE": "状态分歧——双端报告不一致，会话已中止。请双端截图日志上报。",
   "PVP_ANCIENT_PICK_TAKEN": "该先古之民已被对手选走。",
   "PVP_DUEL_CONFIG_MISMATCH": "PvP 对决：与对手配置不一致（本地 {0} / 对端 {1}）——对决已拒绝。双端必须使用相同的 pvpduel_config.json。",
-  "PVP_DUEL_LOSS_FALLBACK": "PvP 对决：判负兜底已触发——结果已记录，本地玩家回复 1 点生命。详情见日志。"
+  "PVP_DUEL_LOSS_FALLBACK": "PvP 对决：判负兜底已触发——结果已记录，本地玩家回复 1 点生命。详情见日志。",
+  "PVP_DUEL_FIRSTHAND": "本幕先手：{0}"
 }
